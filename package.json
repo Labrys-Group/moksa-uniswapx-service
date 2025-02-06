@@ -11,6 +11,7 @@
     "build": "tsc",
     "clean": "rm -rf dist cdk.out",
     "watch": "tsc -w",
+    "postinstall": "patch-package",
     "test": "jest --testPathPattern=\"test/(unit|factories)\"",
     "test:watch": "yarn test --watch",
     "test:integ": "jest --detectOpenHandles --forceExit --testPathPattern=test/integ/",

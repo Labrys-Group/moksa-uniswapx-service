@@ -1,0 +1,403 @@
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.d.ts
+index a0ab67b..1a84df8 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.d.ts
+@@ -33,7 +33,7 @@ type ReverseReactorMapping = {
+ };
+ export declare const REACTOR_ADDRESS_MAPPING: ReactorMapping;
+ export declare const REACTOR_CONTRACT_MAPPING: ReactorMapping;
+-export declare const multicallAddressOn: (chainId?: number) => "0xF9cda624FBC7e059355ce98a31693d299FACd963" | "0xcA11bde05977b3631167028862bE2a173976CA11";
++export declare const multicallAddressOn: (chainId?: number) => string;
+ export declare const RELAY_SENTINEL_RECIPIENT = "0x0000000000000000000000000000000000000000";
+ export declare const REVERSE_REACTOR_MAPPING: ReverseReactorMapping;
+ export declare const BPS = 10000;
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js
+index 02546b2..4e21d24 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js
+@@ -8,7 +8,6 @@ const NETWORKS_WITH_SAME_ADDRESS = [
+     sdk_core_1.ChainId.GOERLI,
+     sdk_core_1.ChainId.POLYGON,
+     sdk_core_1.ChainId.BASE,
+-    sdk_core_1.ChainId.UNICHAIN,
+ ];
+ function constructSameAddressMap(address, additionalNetworks = []) {
+     return NETWORKS_WITH_SAME_ADDRESS.concat(additionalNetworks).reduce((memo, chainId) => {
+@@ -17,8 +16,15 @@ function constructSameAddressMap(address, additionalNetworks = []) {
+     }, {});
+ }
+ exports.constructSameAddressMap = constructSameAddressMap;
+-exports.PERMIT2_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x000000000022d473030f116ddee9f6b43ac78ba3", [11155111, 42161])), { 12341234: "0x000000000022d473030f116ddee9f6b43ac78ba3" });
+-exports.UNISWAPX_ORDER_QUOTER_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x54539967a06Fc0E3C3ED0ee320Eb67362D13C5fF")), { 11155111: "0xAA6187C48096e093c37d2cF178B1e8534A6934f7", 42161: "0x88440407634F89873c5D9439987Ac4BE9725fea8", 12341234: "0xbea0901A41177811b099F787D753436b2c47690E", 8453: "0x88440407634f89873c5d9439987ac4be9725fea8", 130: "0x88440407634F89873c5D9439987Ac4BE9725fea8" });
++exports.PERMIT2_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x000000000022d473030f116ddee9f6b43ac78ba3", [
++    11155111,
++    42161,
++    sdk_core_1.ChainId.MANDALA_DEVNET,
++])), { 12341234: "0x000000000022d473030f116ddee9f6b43ac78ba3" });
++exports.UNISWAPX_ORDER_QUOTER_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x54539967a06Fc0E3C3ED0ee320Eb67362D13C5fF")), { 11155111: "0xAA6187C48096e093c37d2cF178B1e8534A6934f7", 42161: "0x88440407634F89873c5D9439987Ac4BE9725fea8", 12341234: "0xbea0901A41177811b099F787D753436b2c47690E", 8453: "0x88440407634f89873c5d9439987ac4be9725fea8", 130: "0x88440407634F89873c5D9439987Ac4BE9725fea8", 
++    // TODO check whether thats right
++    [sdk_core_1.ChainId.MANDALA_DEVNET]: sdk_core_1.CHAIN_TO_ADDRESSES_MAP[sdk_core_1.ChainId.MANDALA_DEVNET].quoterAddress });
++// TODO skip this and see if it works
+ exports.EXCLUSIVE_FILLER_VALIDATION_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x8A66A74e15544db9688B68B06E116f5d19e5dF90")), { 5: "0x0000000000000000000000000000000000000000", 11155111: "0x0000000000000000000000000000000000000000", 42161: "0x0000000000000000000000000000000000000000", 12341234: "0x8A66A74e15544db9688B68B06E116f5d19e5dF90" });
+ var KNOWN_EVENT_SIGNATURES;
+ (function (KNOWN_EVENT_SIGNATURES) {
+@@ -67,6 +73,11 @@ exports.REACTOR_ADDRESS_MAPPING = Object.assign(Object.assign({}, constructSameA
+         [OrderType.Dutch_V2]: "0x0000000000000000000000000000000000000000",
+         [OrderType.Relay]: "0x0000000000000000000000000000000000000000",
+         [OrderType.Priority]: "0x00000006021a6Bce796be7ba509BBBA71e956e37",
++    }, [sdk_core_1.ChainId.MANDALA_DEVNET]: {
++        [OrderType.Dutch]: "0x18CA04205072A2a0DD92FA88Ea6F9F884b5936C7",
++        [OrderType.Dutch_V2]: "0x62DF95A130e5F98c1279238f7C21F7d374b273B4",
++        [OrderType.Dutch_V3]: "0xef4559C6601C9E2aD144cd2751b49c4FA04DB12C",
++        [OrderType.Priority]: "0xAA59261EDBE82C140e69ef1e3a1382992ceE9D24",
+     } });
+ // aliasing for backwards compatibility
+ exports.REACTOR_CONTRACT_MAPPING = exports.REACTOR_ADDRESS_MAPPING;
+@@ -78,6 +89,8 @@ const multicallAddressOn = (chainId = 1) => {
+         // deployment address from: https://github.com/mds1/multicall/blob/d7b62458c99c650ce1efa7464ffad69d2059ad56/deployments.json#L927
+         case 324:
+             return "0xF9cda624FBC7e059355ce98a31693d299FACd963";
++        case sdk_core_1.ChainId.MANDALA_DEVNET:
++            return sdk_core_1.CHAIN_TO_ADDRESSES_MAP[sdk_core_1.ChainId.MANDALA_DEVNET].multicallAddress;
+         default:
+             return "0xcA11bde05977b3631167028862bE2a173976CA11";
+     }
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js.map b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js.map
+index 5464a72..ceb4c53 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js.map
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/constants.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"constants.js","sourceRoot":"","sources":["../../../src/constants.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"constants.js","sourceRoot":"","sources":["../../../src/constants.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.d.ts
+index 9a706a1..8093100 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.d.ts
+@@ -11,9 +11,11 @@ export type { V3DutchOrderReactor } from "./V3DutchOrderReactor";
+ export type { DeploylessMulticall2 } from "./DeploylessMulticall2";
+ export type { Multicall2 } from "./Multicall2";
+ export * as factories from "./factories";
++export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+ export { ExclusiveDutchOrderReactor__factory } from "./factories/ExclusiveDutchOrderReactor__factory";
+ export { ExclusiveFillerValidation__factory } from "./factories/ExclusiveFillerValidation__factory";
+ export { MockERC20__factory } from "./factories/MockERC20__factory";
++export { Multicall2__factory } from "./factories/Multicall2__factory";
+ export { OrderQuoter__factory } from "./factories/OrderQuoter__factory";
+ export { Permit2__factory } from "./factories/Permit2__factory";
+ export { PriorityOrderReactor__factory } from "./factories/PriorityOrderReactor__factory";
+@@ -21,5 +23,3 @@ export { RelayOrderReactor__factory } from "./factories/RelayOrderReactor__facto
+ export { SwapRouter02Executor__factory } from "./factories/SwapRouter02Executor__factory";
+ export { V2DutchOrderReactor__factory } from "./factories/V2DutchOrderReactor__factory";
+ export { V3DutchOrderReactor__factory } from "./factories/V3DutchOrderReactor__factory";
+-export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+-export { Multicall2__factory } from "./factories/Multicall2__factory";
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js
+index 9022fba..1f7c484 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js
+@@ -1,14 +1,18 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.Multicall2__factory = exports.DeploylessMulticall2__factory = exports.V3DutchOrderReactor__factory = exports.V2DutchOrderReactor__factory = exports.SwapRouter02Executor__factory = exports.RelayOrderReactor__factory = exports.PriorityOrderReactor__factory = exports.Permit2__factory = exports.OrderQuoter__factory = exports.MockERC20__factory = exports.ExclusiveFillerValidation__factory = exports.ExclusiveDutchOrderReactor__factory = exports.factories = void 0;
++exports.V3DutchOrderReactor__factory = exports.V2DutchOrderReactor__factory = exports.SwapRouter02Executor__factory = exports.RelayOrderReactor__factory = exports.PriorityOrderReactor__factory = exports.Permit2__factory = exports.OrderQuoter__factory = exports.Multicall2__factory = exports.MockERC20__factory = exports.ExclusiveFillerValidation__factory = exports.ExclusiveDutchOrderReactor__factory = exports.DeploylessMulticall2__factory = exports.factories = void 0;
+ const tslib_1 = require("tslib");
+ exports.factories = tslib_1.__importStar(require("./factories"));
++var DeploylessMulticall2__factory_1 = require("./factories/DeploylessMulticall2__factory");
++Object.defineProperty(exports, "DeploylessMulticall2__factory", { enumerable: true, get: function () { return DeploylessMulticall2__factory_1.DeploylessMulticall2__factory; } });
+ var ExclusiveDutchOrderReactor__factory_1 = require("./factories/ExclusiveDutchOrderReactor__factory");
+ Object.defineProperty(exports, "ExclusiveDutchOrderReactor__factory", { enumerable: true, get: function () { return ExclusiveDutchOrderReactor__factory_1.ExclusiveDutchOrderReactor__factory; } });
+ var ExclusiveFillerValidation__factory_1 = require("./factories/ExclusiveFillerValidation__factory");
+ Object.defineProperty(exports, "ExclusiveFillerValidation__factory", { enumerable: true, get: function () { return ExclusiveFillerValidation__factory_1.ExclusiveFillerValidation__factory; } });
+ var MockERC20__factory_1 = require("./factories/MockERC20__factory");
+ Object.defineProperty(exports, "MockERC20__factory", { enumerable: true, get: function () { return MockERC20__factory_1.MockERC20__factory; } });
++var Multicall2__factory_1 = require("./factories/Multicall2__factory");
++Object.defineProperty(exports, "Multicall2__factory", { enumerable: true, get: function () { return Multicall2__factory_1.Multicall2__factory; } });
+ var OrderQuoter__factory_1 = require("./factories/OrderQuoter__factory");
+ Object.defineProperty(exports, "OrderQuoter__factory", { enumerable: true, get: function () { return OrderQuoter__factory_1.OrderQuoter__factory; } });
+ var Permit2__factory_1 = require("./factories/Permit2__factory");
+@@ -23,8 +27,4 @@ var V2DutchOrderReactor__factory_1 = require("./factories/V2DutchOrderReactor__f
+ Object.defineProperty(exports, "V2DutchOrderReactor__factory", { enumerable: true, get: function () { return V2DutchOrderReactor__factory_1.V2DutchOrderReactor__factory; } });
+ var V3DutchOrderReactor__factory_1 = require("./factories/V3DutchOrderReactor__factory");
+ Object.defineProperty(exports, "V3DutchOrderReactor__factory", { enumerable: true, get: function () { return V3DutchOrderReactor__factory_1.V3DutchOrderReactor__factory; } });
+-var DeploylessMulticall2__factory_1 = require("./factories/DeploylessMulticall2__factory");
+-Object.defineProperty(exports, "DeploylessMulticall2__factory", { enumerable: true, get: function () { return DeploylessMulticall2__factory_1.DeploylessMulticall2__factory; } });
+-var Multicall2__factory_1 = require("./factories/Multicall2__factory");
+-Object.defineProperty(exports, "Multicall2__factory", { enumerable: true, get: function () { return Multicall2__factory_1.Multicall2__factory; } });
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js.map b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js.map
+index 6283c63..5f5fb45 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js.map
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/contracts/index.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/contracts/index.ts"],"names":[],"mappings":";;;;AAeA,iEAAyC;AACzC,uGAAsG;AAA7F,0JAAA,mCAAmC,OAAA;AAC5C,qGAAoG;AAA3F,wJAAA,kCAAkC,OAAA;AAC3C,qEAAoE;AAA3D,wHAAA,kBAAkB,OAAA;AAC3B,yEAAwE;AAA/D,4HAAA,oBAAoB,OAAA;AAC7B,iEAAgE;AAAvD,oHAAA,gBAAgB,OAAA;AACzB,2FAA0F;AAAjF,8IAAA,6BAA6B,OAAA;AACtC,qFAAoF;AAA3E,wIAAA,0BAA0B,OAAA;AACnC,2FAA0F;AAAjF,8IAAA,6BAA6B,OAAA;AACtC,yFAAwF;AAA/E,4IAAA,4BAA4B,OAAA;AACrC,yFAAwF;AAA/E,4IAAA,4BAA4B,OAAA;AACrC,2FAA0F;AAAjF,8IAAA,6BAA6B,OAAA;AACtC,uEAAsE;AAA7D,0HAAA,mBAAmB,OAAA"}
+\ No newline at end of file
++{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/contracts/index.ts"],"names":[],"mappings":";;;;AAeA,iEAAyC;AACzC,2FAA0F;AAAjF,8IAAA,6BAA6B,OAAA;AACtC,uGAAsG;AAA7F,0JAAA,mCAAmC,OAAA;AAC5C,qGAAoG;AAA3F,wJAAA,kCAAkC,OAAA;AAC3C,qEAAoE;AAA3D,wHAAA,kBAAkB,OAAA;AAC3B,uEAAsE;AAA7D,0HAAA,mBAAmB,OAAA;AAC5B,yEAAwE;AAA/D,4HAAA,oBAAoB,OAAA;AAC7B,iEAAgE;AAAvD,oHAAA,gBAAgB,OAAA;AACzB,2FAA0F;AAAjF,8IAAA,6BAA6B,OAAA;AACtC,qFAAoF;AAA3E,wIAAA,0BAA0B,OAAA;AACnC,2FAA0F;AAAjF,8IAAA,6BAA6B,OAAA;AACtC,yFAAwF;AAA/E,4IAAA,4BAA4B,OAAA;AACrC,yFAAwF;AAA/E,4IAAA,4BAA4B,OAAA"}
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.d.ts
+index 1c35109..81f7e12 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.d.ts
+@@ -3,6 +3,7 @@ export declare enum NativeAssets {
+     MATIC = "MATIC",
+     BNB = "BNB",
+     AVAX = "AVAX",
+-    ETH = "ETH"
++    ETH = "ETH",
++    KPGT = "KPGT"
+ }
+ export declare function areCurrenciesEqual(currency: Currency, address: string | null, chainId: number): boolean;
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js
+index 2fabe89..5c36370 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js
+@@ -9,6 +9,7 @@ var NativeAssets;
+     NativeAssets["BNB"] = "BNB";
+     NativeAssets["AVAX"] = "AVAX";
+     NativeAssets["ETH"] = "ETH";
++    NativeAssets["KPGT"] = "KPGT";
+ })(NativeAssets = exports.NativeAssets || (exports.NativeAssets = {}));
+ function nativeCurrencyAddressString(chainId) {
+     switch (chainId) {
+@@ -18,6 +19,8 @@ function nativeCurrencyAddressString(chainId) {
+             return NativeAssets.BNB;
+         case sdk_core_1.ChainId.AVALANCHE:
+             return NativeAssets.AVAX;
++        case sdk_core_1.ChainId.MANDALA_DEVNET:
++            return NativeAssets.KPGT;
+         default:
+             return NativeAssets.ETH;
+     }
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js.map b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js.map
+index 601f7a3..7327bba 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js.map
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/cjs/src/trade/utils.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"utils.js","sourceRoot":"","sources":["../../../../src/trade/utils.ts"],"names":[],"mappings":";;;AAAA,gDAAsD;AACtD,mCAAmC;AAEnC,IAAY,YAKX;AALD,WAAY,YAAY;IACtB,+BAAe,CAAA;IACf,2BAAW,CAAA;IACX,6BAAa,CAAA;IACb,2BAAW,CAAA;AACb,CAAC,EALW,YAAY,GAAZ,oBAAY,KAAZ,oBAAY,QAKvB;AAED,SAAS,2BAA2B,CAAC,OAAe;IAClD,QAAQ,OAAO,EAAE;QACf,KAAK,kBAAO,CAAC,OAAO;YAClB,OAAO,YAAY,CAAC,KAAK,CAAC;QAC5B,KAAK,kBAAO,CAAC,GAAG;YACd,OAAO,YAAY,CAAC,GAAG,CAAC;QAC1B,KAAK,kBAAO,CAAC,SAAS;YACpB,OAAO,YAAY,CAAC,IAAI,CAAC;QAC3B;YACE,OAAO,YAAY,CAAC,GAAG,CAAC;KAC3B;AACH,CAAC;AAED,SAAgB,kBAAkB,CAChC,QAAkB,EAClB,OAAsB,EACtB,OAAe;IAEf,IAAI,QAAQ,CAAC,OAAO,KAAK,OAAO;QAAE,OAAO,KAAK,CAAC;IAE/C,IAAI,QAAQ,CAAC,QAAQ,EAAE;QACrB,OAAO,CACL,OAAO,KAAK,kBAAS,CAAC,WAAW;YACjC,OAAO,KAAK,2BAA2B,CAAC,OAAO,CAAC,CACjD,CAAC;KACH;IAED,OAAO,QAAQ,CAAC,OAAO,CAAC,WAAW,EAAE,MAAK,OAAO,aAAP,OAAO,uBAAP,OAAO,CAAE,WAAW,EAAE,CAAA,CAAC;AACnE,CAAC;AAfD,gDAeC"}
+\ No newline at end of file
++{"version":3,"file":"utils.js","sourceRoot":"","sources":["../../../../src/trade/utils.ts"],"names":[],"mappings":";;;AAAA,gDAAsD;AACtD,mCAAmC;AAEnC,IAAY,YAMX;AAND,WAAY,YAAY;IACtB,+BAAe,CAAA;IACf,2BAAW,CAAA;IACX,6BAAa,CAAA;IACb,2BAAW,CAAA;IACX,6BAAa,CAAA;AACf,CAAC,EANW,YAAY,GAAZ,oBAAY,KAAZ,oBAAY,QAMvB;AAED,SAAS,2BAA2B,CAAC,OAAe;IAClD,QAAQ,OAAO,EAAE;QACf,KAAK,kBAAO,CAAC,OAAO;YAClB,OAAO,YAAY,CAAC,KAAK,CAAC;QAC5B,KAAK,kBAAO,CAAC,GAAG;YACd,OAAO,YAAY,CAAC,GAAG,CAAC;QAC1B,KAAK,kBAAO,CAAC,SAAS;YACpB,OAAO,YAAY,CAAC,IAAI,CAAC;QAC3B,KAAK,kBAAO,CAAC,cAAc;YACzB,OAAO,YAAY,CAAC,IAAI,CAAC;QAC3B;YACE,OAAO,YAAY,CAAC,GAAG,CAAC;KAC3B;AACH,CAAC;AAED,SAAgB,kBAAkB,CAChC,QAAkB,EAClB,OAAsB,EACtB,OAAe;IAEf,IAAI,QAAQ,CAAC,OAAO,KAAK,OAAO;QAAE,OAAO,KAAK,CAAC;IAE/C,IAAI,QAAQ,CAAC,QAAQ,EAAE;QACrB,OAAO,CACL,OAAO,KAAK,kBAAS,CAAC,WAAW;YACjC,OAAO,KAAK,2BAA2B,CAAC,OAAO,CAAC,CACjD,CAAC;KACH;IAED,OAAO,QAAQ,CAAC,OAAO,CAAC,WAAW,EAAE,MAAK,OAAO,aAAP,OAAO,uBAAP,OAAO,CAAE,WAAW,EAAE,CAAA,CAAC;AACnE,CAAC;AAfD,gDAeC"}
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.d.ts
+index a0ab67b..1a84df8 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.d.ts
+@@ -33,7 +33,7 @@ type ReverseReactorMapping = {
+ };
+ export declare const REACTOR_ADDRESS_MAPPING: ReactorMapping;
+ export declare const REACTOR_CONTRACT_MAPPING: ReactorMapping;
+-export declare const multicallAddressOn: (chainId?: number) => "0xF9cda624FBC7e059355ce98a31693d299FACd963" | "0xcA11bde05977b3631167028862bE2a173976CA11";
++export declare const multicallAddressOn: (chainId?: number) => string;
+ export declare const RELAY_SENTINEL_RECIPIENT = "0x0000000000000000000000000000000000000000";
+ export declare const REVERSE_REACTOR_MAPPING: ReverseReactorMapping;
+ export declare const BPS = 10000;
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js
+index 5810ddd..a568645 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js
+@@ -1,11 +1,10 @@
+-import { ChainId } from "@uniswap/sdk-core";
++import { CHAIN_TO_ADDRESSES_MAP, ChainId } from "@uniswap/sdk-core";
+ import { BigNumber } from "ethers";
+ const NETWORKS_WITH_SAME_ADDRESS = [
+     ChainId.MAINNET,
+     ChainId.GOERLI,
+     ChainId.POLYGON,
+     ChainId.BASE,
+-    ChainId.UNICHAIN,
+ ];
+ export function constructSameAddressMap(address, additionalNetworks = []) {
+     return NETWORKS_WITH_SAME_ADDRESS.concat(additionalNetworks).reduce((memo, chainId) => {
+@@ -13,8 +12,15 @@ export function constructSameAddressMap(address, additionalNetworks = []) {
+         return memo;
+     }, {});
+ }
+-export const PERMIT2_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x000000000022d473030f116ddee9f6b43ac78ba3", [11155111, 42161])), { 12341234: "0x000000000022d473030f116ddee9f6b43ac78ba3" });
+-export const UNISWAPX_ORDER_QUOTER_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x54539967a06Fc0E3C3ED0ee320Eb67362D13C5fF")), { 11155111: "0xAA6187C48096e093c37d2cF178B1e8534A6934f7", 42161: "0x88440407634F89873c5D9439987Ac4BE9725fea8", 12341234: "0xbea0901A41177811b099F787D753436b2c47690E", 8453: "0x88440407634f89873c5d9439987ac4be9725fea8", 130: "0x88440407634F89873c5D9439987Ac4BE9725fea8" });
++export const PERMIT2_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x000000000022d473030f116ddee9f6b43ac78ba3", [
++    11155111,
++    42161,
++    ChainId.MANDALA_DEVNET,
++])), { 12341234: "0x000000000022d473030f116ddee9f6b43ac78ba3" });
++export const UNISWAPX_ORDER_QUOTER_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x54539967a06Fc0E3C3ED0ee320Eb67362D13C5fF")), { 11155111: "0xAA6187C48096e093c37d2cF178B1e8534A6934f7", 42161: "0x88440407634F89873c5D9439987Ac4BE9725fea8", 12341234: "0xbea0901A41177811b099F787D753436b2c47690E", 8453: "0x88440407634f89873c5d9439987ac4be9725fea8", 130: "0x88440407634F89873c5D9439987Ac4BE9725fea8", 
++    // TODO check whether thats right
++    [ChainId.MANDALA_DEVNET]: CHAIN_TO_ADDRESSES_MAP[ChainId.MANDALA_DEVNET].quoterAddress });
++// TODO skip this and see if it works
+ export const EXCLUSIVE_FILLER_VALIDATION_MAPPING = Object.assign(Object.assign({}, constructSameAddressMap("0x8A66A74e15544db9688B68B06E116f5d19e5dF90")), { 5: "0x0000000000000000000000000000000000000000", 11155111: "0x0000000000000000000000000000000000000000", 42161: "0x0000000000000000000000000000000000000000", 12341234: "0x8A66A74e15544db9688B68B06E116f5d19e5dF90" });
+ export var KNOWN_EVENT_SIGNATURES;
+ (function (KNOWN_EVENT_SIGNATURES) {
+@@ -63,6 +69,11 @@ export const REACTOR_ADDRESS_MAPPING = Object.assign(Object.assign({}, construct
+         [OrderType.Dutch_V2]: "0x0000000000000000000000000000000000000000",
+         [OrderType.Relay]: "0x0000000000000000000000000000000000000000",
+         [OrderType.Priority]: "0x00000006021a6Bce796be7ba509BBBA71e956e37",
++    }, [ChainId.MANDALA_DEVNET]: {
++        [OrderType.Dutch]: "0x18CA04205072A2a0DD92FA88Ea6F9F884b5936C7",
++        [OrderType.Dutch_V2]: "0x62DF95A130e5F98c1279238f7C21F7d374b273B4",
++        [OrderType.Dutch_V3]: "0xef4559C6601C9E2aD144cd2751b49c4FA04DB12C",
++        [OrderType.Priority]: "0xAA59261EDBE82C140e69ef1e3a1382992ceE9D24",
+     } });
+ // aliasing for backwards compatibility
+ export const REACTOR_CONTRACT_MAPPING = REACTOR_ADDRESS_MAPPING;
+@@ -74,6 +85,8 @@ export const multicallAddressOn = (chainId = 1) => {
+         // deployment address from: https://github.com/mds1/multicall/blob/d7b62458c99c650ce1efa7464ffad69d2059ad56/deployments.json#L927
+         case 324:
+             return "0xF9cda624FBC7e059355ce98a31693d299FACd963";
++        case ChainId.MANDALA_DEVNET:
++            return CHAIN_TO_ADDRESSES_MAP[ChainId.MANDALA_DEVNET].multicallAddress;
+         default:
+             return "0xcA11bde05977b3631167028862bE2a173976CA11";
+     }
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js.map b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js.map
+index 8839a16..17604cf 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js.map
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/constants.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"constants.js","sourceRoot":"","sources":["../../../src/constants.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"constants.js","sourceRoot":"","sources":["../../../src/constants.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,sBAAsB,EAAE,OAAO,EAAE,MAAM,mBAAmB,CAAC;AACpE,OAAO,EAAE,SAAS,EAAE,MAAM,QAAQ,CAAC;AAInC,MAAM,0BAA0B,GAAc;IAC5C,OAAO,CAAC,OAAO;IACf,OAAO,CAAC,MAAM;IACd,OAAO,CAAC,OAAO;IACf,OAAO,CAAC,IAAI;CACb,CAAC;AAEF,MAAM,UAAU,uBAAuB,CACrC,OAAU,EACV,qBAAgC,EAAE;IAElC,OAAO,0BAA0B,CAAC,MAAM,CAAC,kBAAkB,CAAC,CAAC,MAAM,CAEhE,CAAC,IAAI,EAAE,OAAO,EAAE,EAAE;QACnB,IAAI,CAAC,OAAO,CAAC,GAAG,OAAO,CAAC;QACxB,OAAO,IAAI,CAAC;IACd,CAAC,EAAE,EAAE,CAAC,CAAC;AACT,CAAC;AAED,MAAM,CAAC,MAAM,eAAe,mCACvB,uBAAuB,CAAC,4CAA4C,EAAE;IACvE,QAAQ;IACR,KAAK;IACL,OAAO,CAAC,cAAc;CACvB,CAAC,KACF,QAAQ,EAAE,4CAA4C,GACvD,CAAC;AAEF,MAAM,CAAC,MAAM,6BAA6B,mCACrC,uBAAuB,CAAC,4CAA4C,CAAC,KACxE,QAAQ,EAAE,4CAA4C,EACtD,KAAK,EAAE,4CAA4C,EACnD,QAAQ,EAAE,4CAA4C,EACtD,IAAI,EAAE,4CAA4C,EAClD,GAAG,EAAE,4CAA4C;IACjD,iCAAiC;IACjC,CAAC,OAAO,CAAC,cAAc,CAAC,EACtB,sBAAsB,CAAC,OAAO,CAAC,cAAc,CAAC,CAAC,aAAa,GAC/D,CAAC;AAEF,qCAAqC;AACrC,MAAM,CAAC,MAAM,mCAAmC,mCAC3C,uBAAuB,CAAC,4CAA4C,CAAC,KACxE,CAAC,EAAE,4CAA4C,EAC/C,QAAQ,EAAE,4CAA4C,EACtD,KAAK,EAAE,4CAA4C,EACnD,QAAQ,EAAE,4CAA4C,GACvD,CAAC;AAEF,MAAM,CAAN,IAAY,sBAEX;AAFD,WAAY,sBAAsB;IAChC,+GAAqF,CAAA;AACvF,CAAC,EAFW,sBAAsB,KAAtB,sBAAsB,QAEjC;AAED,MAAM,CAAN,IAAY,SAOX;AAPD,WAAY,SAAS;IACnB,4BAAe,CAAA;IACf,4BAAe,CAAA;IACf,kCAAqB,CAAA;IACrB,kCAAqB,CAAA;IACrB,4BAAe,CAAA;IACf,kCAAqB,CAAA;AACvB,CAAC,EAPW,SAAS,KAAT,SAAS,QAOpB;AAWD,MAAM,CAAC,MAAM,uBAAuB,mCAC/B,uBAAuB,CAAC;IACzB,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;IAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;IAClE,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;CAChE,CAAC;IACF,kCAAkC;IAClC,CAAC,EAAE;QACD,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;KAChE,EACD,QAAQ,EAAE;QACR,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;KAChE,EACD,QAAQ,EAAE;QACR,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;KAChE,EACD,KAAK,EAAE;QACL,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;KACnE,EACD,IAAI,EAAE;QACJ,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;KACnE,EACD,GAAG,EAAE;QACH,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;KACnE,EACD,CAAC,OAAO,CAAC,cAAc,CAAC,EAAE;QACxB,CAAC,SAAS,CAAC,KAAK,CAAC,EAAE,4CAA4C;QAC/D,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;QAClE,CAAC,SAAS,CAAC,QAAQ,CAAC,EAAE,4CAA4C;KACnE,GACF,CAAC;AAEF,uCAAuC;AACvC,MAAM,CAAC,MAAM,wBAAwB,GAAmB,uBAAuB,CAAC;AAEhF,oCAAoC;AACpC,MAAM,CAAC,MAAM,kBAAkB,GAAG,CAAC,OAAO,GAAG,CAAC,EAAE,EAAE;IAChD,QAAQ,OAAO,EAAE;QACf,oFAAoF;QACpF,mDAAmD;QACnD,iIAAiI;QACjI,KAAK,GAAG;YACN,OAAO,4CAA4C,CAAC;QACtD,KAAK,OAAO,CAAC,cAAc;YACzB,OAAO,sBAAsB,CAAC,OAAO,CAAC,cAAc,CAAC,CAAC,gBAAgB,CAAC;QACzE;YACE,OAAO,4CAA4C,CAAC;KACvD;AACH,CAAC,CAAC;AAEF,MAAM,CAAC,MAAM,wBAAwB,GACnC,4CAA4C,CAAC;AAE/C,MAAM,CAAC,MAAM,uBAAuB,GAA0B,MAAM,CAAC,OAAO,CAC1E,uBAAuB;AACvB,6DAA6D;CAC9D,CAAC,MAAM,CAAC,CAAC,GAA0B,EAAE,CAAC,CAAC,EAAE,UAAU,CAAC,EAAE,EAAE;IACvD,KAAK,MAAM,CAAC,SAAS,EAAE,cAAc,CAAC,IAAI,MAAM,CAAC,OAAO,CAAC,UAAU,CAAC,EAAE;QACpE,gDAAgD;QAChD,GAAG,CAAC,cAAc,CAAC,WAAW,EAAE,CAAC,GAAG;YAClC,SAAS,EAAE,SAAS,CAAC,SAAmC,CAAC;SAC1D,CAAC;KACH;IAED,OAAO,GAAG,CAAC;AACb,CAAC,EAAE,EAAE,CAAC,CAAC;AAEP,MAAM,CAAC,MAAM,GAAG,GAAG,KAAK,CAAC;AAEzB,MAAM,CAAC,MAAM,GAAG,GAAG,SAAS,CAAC,IAAI,CAAC,EAAE,CAAC,CAAC,GAAG,CAAC,CAAC,CAAC,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.d.ts
+index 9a706a1..8093100 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.d.ts
+@@ -11,9 +11,11 @@ export type { V3DutchOrderReactor } from "./V3DutchOrderReactor";
+ export type { DeploylessMulticall2 } from "./DeploylessMulticall2";
+ export type { Multicall2 } from "./Multicall2";
+ export * as factories from "./factories";
++export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+ export { ExclusiveDutchOrderReactor__factory } from "./factories/ExclusiveDutchOrderReactor__factory";
+ export { ExclusiveFillerValidation__factory } from "./factories/ExclusiveFillerValidation__factory";
+ export { MockERC20__factory } from "./factories/MockERC20__factory";
++export { Multicall2__factory } from "./factories/Multicall2__factory";
+ export { OrderQuoter__factory } from "./factories/OrderQuoter__factory";
+ export { Permit2__factory } from "./factories/Permit2__factory";
+ export { PriorityOrderReactor__factory } from "./factories/PriorityOrderReactor__factory";
+@@ -21,5 +23,3 @@ export { RelayOrderReactor__factory } from "./factories/RelayOrderReactor__facto
+ export { SwapRouter02Executor__factory } from "./factories/SwapRouter02Executor__factory";
+ export { V2DutchOrderReactor__factory } from "./factories/V2DutchOrderReactor__factory";
+ export { V3DutchOrderReactor__factory } from "./factories/V3DutchOrderReactor__factory";
+-export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+-export { Multicall2__factory } from "./factories/Multicall2__factory";
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js
+index 2ff8fcd..2266b6a 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js
+@@ -1,7 +1,9 @@
+ export * as factories from "./factories";
++export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+ export { ExclusiveDutchOrderReactor__factory } from "./factories/ExclusiveDutchOrderReactor__factory";
+ export { ExclusiveFillerValidation__factory } from "./factories/ExclusiveFillerValidation__factory";
+ export { MockERC20__factory } from "./factories/MockERC20__factory";
++export { Multicall2__factory } from "./factories/Multicall2__factory";
+ export { OrderQuoter__factory } from "./factories/OrderQuoter__factory";
+ export { Permit2__factory } from "./factories/Permit2__factory";
+ export { PriorityOrderReactor__factory } from "./factories/PriorityOrderReactor__factory";
+@@ -9,6 +11,4 @@ export { RelayOrderReactor__factory } from "./factories/RelayOrderReactor__facto
+ export { SwapRouter02Executor__factory } from "./factories/SwapRouter02Executor__factory";
+ export { V2DutchOrderReactor__factory } from "./factories/V2DutchOrderReactor__factory";
+ export { V3DutchOrderReactor__factory } from "./factories/V3DutchOrderReactor__factory";
+-export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+-export { Multicall2__factory } from "./factories/Multicall2__factory";
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js.map b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js.map
+index 24c7da3..7adff94 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js.map
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/contracts/index.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/contracts/index.ts"],"names":[],"mappings":"AAeA,OAAO,KAAK,SAAS,MAAM,aAAa,CAAC;AACzC,OAAO,EAAE,mCAAmC,EAAE,MAAM,iDAAiD,CAAC;AACtG,OAAO,EAAE,kCAAkC,EAAE,MAAM,gDAAgD,CAAC;AACpG,OAAO,EAAE,kBAAkB,EAAE,MAAM,gCAAgC,CAAC;AACpE,OAAO,EAAE,oBAAoB,EAAE,MAAM,kCAAkC,CAAC;AACxE,OAAO,EAAE,gBAAgB,EAAE,MAAM,8BAA8B,CAAC;AAChE,OAAO,EAAE,6BAA6B,EAAE,MAAM,2CAA2C,CAAC;AAC1F,OAAO,EAAE,0BAA0B,EAAE,MAAM,wCAAwC,CAAC;AACpF,OAAO,EAAE,6BAA6B,EAAE,MAAM,2CAA2C,CAAC;AAC1F,OAAO,EAAE,4BAA4B,EAAE,MAAM,0CAA0C,CAAC;AACxF,OAAO,EAAE,4BAA4B,EAAE,MAAM,0CAA0C,CAAC;AACxF,OAAO,EAAE,6BAA6B,EAAE,MAAM,2CAA2C,CAAC;AAC1F,OAAO,EAAE,mBAAmB,EAAE,MAAM,iCAAiC,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/contracts/index.ts"],"names":[],"mappings":"AAeA,OAAO,KAAK,SAAS,MAAM,aAAa,CAAC;AACzC,OAAO,EAAE,6BAA6B,EAAE,MAAM,2CAA2C,CAAC;AAC1F,OAAO,EAAE,mCAAmC,EAAE,MAAM,iDAAiD,CAAC;AACtG,OAAO,EAAE,kCAAkC,EAAE,MAAM,gDAAgD,CAAC;AACpG,OAAO,EAAE,kBAAkB,EAAE,MAAM,gCAAgC,CAAC;AACpE,OAAO,EAAE,mBAAmB,EAAE,MAAM,iCAAiC,CAAC;AACtE,OAAO,EAAE,oBAAoB,EAAE,MAAM,kCAAkC,CAAC;AACxE,OAAO,EAAE,gBAAgB,EAAE,MAAM,8BAA8B,CAAC;AAChE,OAAO,EAAE,6BAA6B,EAAE,MAAM,2CAA2C,CAAC;AAC1F,OAAO,EAAE,0BAA0B,EAAE,MAAM,wCAAwC,CAAC;AACpF,OAAO,EAAE,6BAA6B,EAAE,MAAM,2CAA2C,CAAC;AAC1F,OAAO,EAAE,4BAA4B,EAAE,MAAM,0CAA0C,CAAC;AACxF,OAAO,EAAE,4BAA4B,EAAE,MAAM,0CAA0C,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.d.ts
+index 1c35109..81f7e12 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.d.ts
+@@ -3,6 +3,7 @@ export declare enum NativeAssets {
+     MATIC = "MATIC",
+     BNB = "BNB",
+     AVAX = "AVAX",
+-    ETH = "ETH"
++    ETH = "ETH",
++    KPGT = "KPGT"
+ }
+ export declare function areCurrenciesEqual(currency: Currency, address: string | null, chainId: number): boolean;
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js
+index 27cbd2b..4c513e5 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js
+@@ -6,6 +6,7 @@ export var NativeAssets;
+     NativeAssets["BNB"] = "BNB";
+     NativeAssets["AVAX"] = "AVAX";
+     NativeAssets["ETH"] = "ETH";
++    NativeAssets["KPGT"] = "KPGT";
+ })(NativeAssets || (NativeAssets = {}));
+ function nativeCurrencyAddressString(chainId) {
+     switch (chainId) {
+@@ -15,6 +16,8 @@ function nativeCurrencyAddressString(chainId) {
+             return NativeAssets.BNB;
+         case ChainId.AVALANCHE:
+             return NativeAssets.AVAX;
++        case ChainId.MANDALA_DEVNET:
++            return NativeAssets.KPGT;
+         default:
+             return NativeAssets.ETH;
+     }
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js.map b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js.map
+index a16f51f..c40133e 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js.map
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/esm/src/trade/utils.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"utils.js","sourceRoot":"","sources":["../../../../src/trade/utils.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAY,MAAM,mBAAmB,CAAC;AACtD,OAAO,EAAE,SAAS,EAAE,MAAM,QAAQ,CAAC;AAEnC,MAAM,CAAN,IAAY,YAKX;AALD,WAAY,YAAY;IACtB,+BAAe,CAAA;IACf,2BAAW,CAAA;IACX,6BAAa,CAAA;IACb,2BAAW,CAAA;AACb,CAAC,EALW,YAAY,KAAZ,YAAY,QAKvB;AAED,SAAS,2BAA2B,CAAC,OAAe;IAClD,QAAQ,OAAO,EAAE;QACf,KAAK,OAAO,CAAC,OAAO;YAClB,OAAO,YAAY,CAAC,KAAK,CAAC;QAC5B,KAAK,OAAO,CAAC,GAAG;YACd,OAAO,YAAY,CAAC,GAAG,CAAC;QAC1B,KAAK,OAAO,CAAC,SAAS;YACpB,OAAO,YAAY,CAAC,IAAI,CAAC;QAC3B;YACE,OAAO,YAAY,CAAC,GAAG,CAAC;KAC3B;AACH,CAAC;AAED,MAAM,UAAU,kBAAkB,CAChC,QAAkB,EAClB,OAAsB,EACtB,OAAe;IAEf,IAAI,QAAQ,CAAC,OAAO,KAAK,OAAO;QAAE,OAAO,KAAK,CAAC;IAE/C,IAAI,QAAQ,CAAC,QAAQ,EAAE;QACrB,OAAO,CACL,OAAO,KAAK,SAAS,CAAC,WAAW;YACjC,OAAO,KAAK,2BAA2B,CAAC,OAAO,CAAC,CACjD,CAAC;KACH;IAED,OAAO,QAAQ,CAAC,OAAO,CAAC,WAAW,EAAE,MAAK,OAAO,aAAP,OAAO,uBAAP,OAAO,CAAE,WAAW,EAAE,CAAA,CAAC;AACnE,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"utils.js","sourceRoot":"","sources":["../../../../src/trade/utils.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAY,MAAM,mBAAmB,CAAC;AACtD,OAAO,EAAE,SAAS,EAAE,MAAM,QAAQ,CAAC;AAEnC,MAAM,CAAN,IAAY,YAMX;AAND,WAAY,YAAY;IACtB,+BAAe,CAAA;IACf,2BAAW,CAAA;IACX,6BAAa,CAAA;IACb,2BAAW,CAAA;IACX,6BAAa,CAAA;AACf,CAAC,EANW,YAAY,KAAZ,YAAY,QAMvB;AAED,SAAS,2BAA2B,CAAC,OAAe;IAClD,QAAQ,OAAO,EAAE;QACf,KAAK,OAAO,CAAC,OAAO;YAClB,OAAO,YAAY,CAAC,KAAK,CAAC;QAC5B,KAAK,OAAO,CAAC,GAAG;YACd,OAAO,YAAY,CAAC,GAAG,CAAC;QAC1B,KAAK,OAAO,CAAC,SAAS;YACpB,OAAO,YAAY,CAAC,IAAI,CAAC;QAC3B,KAAK,OAAO,CAAC,cAAc;YACzB,OAAO,YAAY,CAAC,IAAI,CAAC;QAC3B;YACE,OAAO,YAAY,CAAC,GAAG,CAAC;KAC3B;AACH,CAAC;AAED,MAAM,UAAU,kBAAkB,CAChC,QAAkB,EAClB,OAAsB,EACtB,OAAe;IAEf,IAAI,QAAQ,CAAC,OAAO,KAAK,OAAO;QAAE,OAAO,KAAK,CAAC;IAE/C,IAAI,QAAQ,CAAC,QAAQ,EAAE;QACrB,OAAO,CACL,OAAO,KAAK,SAAS,CAAC,WAAW;YACjC,OAAO,KAAK,2BAA2B,CAAC,OAAO,CAAC,CACjD,CAAC;KACH;IAED,OAAO,QAAQ,CAAC,OAAO,CAAC,WAAW,EAAE,MAAK,OAAO,aAAP,OAAO,uBAAP,OAAO,CAAE,WAAW,EAAE,CAAA,CAAC;AACnE,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/types/src/constants.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/types/src/constants.d.ts
+index a0ab67b..1a84df8 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/types/src/constants.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/types/src/constants.d.ts
+@@ -33,7 +33,7 @@ type ReverseReactorMapping = {
+ };
+ export declare const REACTOR_ADDRESS_MAPPING: ReactorMapping;
+ export declare const REACTOR_CONTRACT_MAPPING: ReactorMapping;
+-export declare const multicallAddressOn: (chainId?: number) => "0xF9cda624FBC7e059355ce98a31693d299FACd963" | "0xcA11bde05977b3631167028862bE2a173976CA11";
++export declare const multicallAddressOn: (chainId?: number) => string;
+ export declare const RELAY_SENTINEL_RECIPIENT = "0x0000000000000000000000000000000000000000";
+ export declare const REVERSE_REACTOR_MAPPING: ReverseReactorMapping;
+ export declare const BPS = 10000;
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/types/src/contracts/index.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/types/src/contracts/index.d.ts
+index 9a706a1..8093100 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/types/src/contracts/index.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/types/src/contracts/index.d.ts
+@@ -11,9 +11,11 @@ export type { V3DutchOrderReactor } from "./V3DutchOrderReactor";
+ export type { DeploylessMulticall2 } from "./DeploylessMulticall2";
+ export type { Multicall2 } from "./Multicall2";
+ export * as factories from "./factories";
++export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+ export { ExclusiveDutchOrderReactor__factory } from "./factories/ExclusiveDutchOrderReactor__factory";
+ export { ExclusiveFillerValidation__factory } from "./factories/ExclusiveFillerValidation__factory";
+ export { MockERC20__factory } from "./factories/MockERC20__factory";
++export { Multicall2__factory } from "./factories/Multicall2__factory";
+ export { OrderQuoter__factory } from "./factories/OrderQuoter__factory";
+ export { Permit2__factory } from "./factories/Permit2__factory";
+ export { PriorityOrderReactor__factory } from "./factories/PriorityOrderReactor__factory";
+@@ -21,5 +23,3 @@ export { RelayOrderReactor__factory } from "./factories/RelayOrderReactor__facto
+ export { SwapRouter02Executor__factory } from "./factories/SwapRouter02Executor__factory";
+ export { V2DutchOrderReactor__factory } from "./factories/V2DutchOrderReactor__factory";
+ export { V3DutchOrderReactor__factory } from "./factories/V3DutchOrderReactor__factory";
+-export { DeploylessMulticall2__factory } from "./factories/DeploylessMulticall2__factory";
+-export { Multicall2__factory } from "./factories/Multicall2__factory";
+diff --git a/node_modules/@uniswap/uniswapx-sdk/dist/types/src/trade/utils.d.ts b/node_modules/@uniswap/uniswapx-sdk/dist/types/src/trade/utils.d.ts
+index 1c35109..81f7e12 100644
+--- a/node_modules/@uniswap/uniswapx-sdk/dist/types/src/trade/utils.d.ts
++++ b/node_modules/@uniswap/uniswapx-sdk/dist/types/src/trade/utils.d.ts
+@@ -3,6 +3,7 @@ export declare enum NativeAssets {
+     MATIC = "MATIC",
+     BNB = "BNB",
+     AVAX = "AVAX",
+-    ETH = "ETH"
++    ETH = "ETH",
++    KPGT = "KPGT"
+ }
+ export declare function areCurrenciesEqual(currency: Currency, address: string | null, chainId: number): boolean;

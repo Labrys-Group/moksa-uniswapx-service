@@ -1,5 +1,6 @@
 import { ChainId } from './util/chain'
 
+// TODO added to config, see if right place and if it works
 export class RpcUrlMap {
   private chainIdToUrl: Map<ChainId, string> = new Map()
 

@@ -6,6 +6,7 @@ type Config = {
   rpcUrls: RpcUrlMap
 }
 
+// TODO can just hardcode it if it doesn't work
 export const buildConfig = (): Config => {
   const rpcUrls = new RpcUrlMap()
   for (const chainId of SUPPORTED_CHAINS) {

@@ -1,4 +1,4 @@
-import { ChainId } from "./chain"
+import { ChainId } from './chain'
 
 export const WEBHOOK_CONFIG_BUCKET = 'order-webhook-notification-config'
 export const PRODUCTION_WEBHOOK_CONFIG_KEY = 'production.json'
@@ -12,12 +12,14 @@ export const OLDEST_BLOCK_BY_CHAIN = {
   [ChainId.ARBITRUM_ONE]: 253597707,
   [ChainId.BASE]: 22335646,
   [ChainId.UNICHAIN]: 6747397,
+  [ChainId.MANDALA_DEVNET]: 483744,
 }
 export const BLOCK_TIME_MS_BY_CHAIN = {
   [ChainId.MAINNET]: 12000,
   [ChainId.ARBITRUM_ONE]: 250,
   [ChainId.BASE]: 2000,
   [ChainId.UNICHAIN]: 1000,
+  [ChainId.MANDALA_DEVNET]: 6100,
 }
 export const BLOCK_RANGE = 10000
 export const CRON_MAX_ATTEMPTS = 10
@@ -26,5 +28,5 @@ export const DYNAMO_BATCH_WRITE_MAX = 25
 
 export const DEFAULT_UNIMIND_PARAMETERS = {
   pi: 5,
-  tau: 5
+  tau: 5,
 }
