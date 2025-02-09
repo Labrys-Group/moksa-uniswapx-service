@@ -164,8 +164,8 @@ export class APIPipeline extends Stack {
     // Beta us-east-2
     const betaUsEast2Stage = new APIStage(this, 'beta-us-east-2', {
       env: { account: '321377678687', region: 'us-east-2' },
-      // provisionedConcurrency: 2,
-      provisionedConcurrency: 1,
+      provisionedConcurrency: 2,
+      // provisionedConcurrency: 1,
       internalApiKey: internalApiKey.secretValue.toString(),
       stage: STAGE.BETA,
       envVars: {
@@ -200,8 +200,8 @@ export class APIPipeline extends Stack {
     // Prod us-east-2
     const prodUsEast2Stage = new APIStage(this, 'prod-us-east-2', {
       env: { account: '316116520258', region: 'us-east-2' },
-      // provisionedConcurrency: 5,
-      provisionedConcurrency: 1,
+      provisionedConcurrency: 5,
+      // provisionedConcurrency: 1,
       internalApiKey: internalApiKey.secretValue.toString(),
       chatbotSNSArn: 'arn:aws:sns:us-east-2:644039819003:SlackChatbotTopic',
       stage: STAGE.PROD,
@@ -298,6 +298,7 @@ export class APIPipeline extends Stack {
         'echo "GPA_SERVICE_URL=${GPA_SERVICE_URL}" > .env',
         'echo "COSIGNER_ADDRESS=${COSIGNER_ADDRESS}" > .env',
         'echo "RPC_1=${RPC_1}" > .env',
+        'echo "RPC_6025=${RPC_6025}" > .env',
         'echo "TEST_WALLET_PK=${TEST_WALLET_PK}" > .env',
         'echo "TEST_FILLER_PK=${TEST_FILLER_PK}" > .env',
         'yarn install --network-concurrency 1 --skip-integrity-check',
@@ -333,6 +334,7 @@ envVars['RPC_TENDERLY'] = process.env[`RPC_TENDERLY`] || ''
 envVars['RPC_1'] = process.env[`RPC_1`] || ''
 envVars['RPC_8453'] = process.env[`RPC_8453`] || ''
 envVars['RPC_130'] = process.env[`RPC_130`] || ''
+envVars['RPC_6025'] = process.env[`RPC_6025`] || ''
 envVars['DL_REACTOR_TENDERLY'] = process.env[`DL_REACTOR_TENDERLY`] || ''
 envVars['QUOTER_TENDERLY'] = process.env[`QUOTER_TENDERLY`] || ''
 envVars['PERMIT2_TENDERLY'] = process.env[`PERMIT2_TENDERLY`] || ''
