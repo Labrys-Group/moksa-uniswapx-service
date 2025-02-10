@@ -7,12 +7,13 @@ import { ethers } from 'ethers'
 import { CONFIG } from '../../Config'
 import { log } from '../../Logging'
 import { LimitOrdersRepository } from '../../repositories/limit-orders-repository'
+import { DynamoQuoteMetadataRepository } from '../../repositories/quote-metadata-repository'
 import { RelayOrderRepository } from '../../repositories/RelayOrderRepository'
 import { AnalyticsService } from '../../services/analytics-service'
 import { OrderDispatcher } from '../../services/OrderDispatcher'
 import { RelayOrderService } from '../../services/RelayOrderService'
 import { UniswapXOrderService } from '../../services/UniswapXOrderService'
-import { SUPPORTED_CHAINS } from '../../util/chain'
+import { LIMIT_ORDER_SUPPORTED_CHAINS_MOKSA } from '../../util/chain'
 import { ONE_YEAR_IN_SECONDS } from '../../util/constants'
 import { OffChainRelayOrderValidator } from '../../util/OffChainRelayOrderValidator'
 import { OffChainUniswapXOrderValidator } from '../../util/OffChainUniswapXOrderValidator'
@@ -24,11 +25,10 @@ import { PostOrderHandler } from '../post-order/handler'
 import { PostOrderBodyParser } from '../post-order/PostOrderBodyParser'
 import { ProviderMap } from '../shared'
 import { getMaxLimitOpenOrders, PostLimitOrderInjector } from './injector'
-import { DynamoQuoteMetadataRepository } from '../../repositories/quote-metadata-repository'
 
 const onChainValidatorMap = new OnChainValidatorMap<OnChainOrderValidator>()
 
-for (const chainId of SUPPORTED_CHAINS) {
+for (const chainId of LIMIT_ORDER_SUPPORTED_CHAINS_MOKSA) {
   onChainValidatorMap.set(
     chainId,
     new OnChainOrderValidator(new ethers.providers.StaticJsonRpcProvider(CONFIG.rpcUrls.get(chainId)), chainId)
@@ -37,7 +37,7 @@ for (const chainId of SUPPORTED_CHAINS) {
 
 const providerMap: ProviderMap = new Map()
 
-for (const chainId of SUPPORTED_CHAINS) {
+for (const chainId of LIMIT_ORDER_SUPPORTED_CHAINS_MOKSA) {
   providerMap.set(chainId, new ethers.providers.StaticJsonRpcProvider(CONFIG.rpcUrls.get(chainId)))
 }
 
@@ -64,7 +64,7 @@ const uniswapXOrderService = new UniswapXOrderService(
 const relayOrderValidator = new OffChainRelayOrderValidator(() => new Date().getTime() / 1000)
 const relayOrderValidatorMap = new OnChainValidatorMap<OnChainRelayOrderValidator>()
 
-for (const chainId of SUPPORTED_CHAINS) {
+for (const chainId of LIMIT_ORDER_SUPPORTED_CHAINS_MOKSA) {
   onChainValidatorMap.set(
     chainId,
     new OnChainOrderValidator(new ethers.providers.StaticJsonRpcProvider(CONFIG.rpcUrls.get(chainId)), chainId)

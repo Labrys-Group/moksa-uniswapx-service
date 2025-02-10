@@ -1,0 +1,12 @@
+# Use this if your deployments start breaking horribly - nukes your entire aws setup
+# need to install aws-nuke first
+# DO NOT use this for prod, only for full dev environment teardowns
+regions:
+  - us-east-2
+account-blocklist: ["999999999999"]  # if you have accounts to protect, list them here.
+accounts:
+  "756342596824":
+    filters:
+      IAMRole:
+        - "aws-service-role/*"
+        - "cdk-*"

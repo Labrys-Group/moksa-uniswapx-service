@@ -1,7 +1,7 @@
 import { OrderType, REACTOR_ADDRESS_MAPPING, RelayEventWatcher, UniswapXEventWatcher } from '@uniswap/uniswapx-sdk'
 import { ethers } from 'ethers'
 import { CONFIG } from '../Config'
-import { ChainId, SUPPORTED_CHAINS } from '../util/chain'
+import { ChainId, LIMIT_ORDER_SUPPORTED_CHAINS_MOKSA } from '../util/chain'
 
 export class EventWatcherMap<T extends UniswapXEventWatcher | RelayEventWatcher> {
   private chainIdToEventWatcher: Map<ChainId, T> = new Map()
@@ -27,7 +27,7 @@ export class EventWatcherMap<T extends UniswapXEventWatcher | RelayEventWatcher>
 
   public static createRelayEventWatcherMap() {
     const map = new EventWatcherMap<RelayEventWatcher>()
-    for (const chainId of SUPPORTED_CHAINS) {
+    for (const chainId of LIMIT_ORDER_SUPPORTED_CHAINS_MOKSA) {
       const address = REACTOR_ADDRESS_MAPPING[chainId][OrderType.Relay]
       if (!address) {
         throw new Error(`No Reactor Address Configured for ${chainId}, ${OrderType.Relay}`)

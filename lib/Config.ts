@@ -1,6 +1,6 @@
 import { checkDefined } from './preconditions/preconditions'
 import { RpcUrlMap } from './RpcUrlMap'
-import { ChainId, SUPPORTED_CHAINS } from './util/chain'
+import { ChainId } from './util/chain'
 
 type Config = {
   rpcUrls: RpcUrlMap
@@ -9,7 +9,7 @@ type Config = {
 // TODO can just hardcode it if it doesn't work
 export const buildConfig = (): Config => {
   const rpcUrls = new RpcUrlMap()
-  for (const chainId of SUPPORTED_CHAINS) {
+  for (const chainId of [ChainId.MAINNET, ChainId.MANDALA_DEVNET]) {
     if (chainId === ChainId.MANDALA_DEVNET) {
       rpcUrls.set(ChainId.MANDALA_DEVNET, 'https://mlg2.mandalachain.io')
     } else {

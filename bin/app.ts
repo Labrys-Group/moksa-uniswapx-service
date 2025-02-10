@@ -93,7 +93,9 @@ export class APIPipeline extends Stack {
       commands: [
         'git config --global url."https://${GH_TOKEN}@github.com/".insteadOf ssh://git@github.com/',
         'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc',
+        'npm install -g patch-package',
         'yarn install --network-concurrency 1 --skip-integrity-check --check-cache',
+        'yarn postinstall',
         'yarn build',
         'npx cdk synth',
       ],
