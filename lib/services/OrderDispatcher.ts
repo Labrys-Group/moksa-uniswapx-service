@@ -4,6 +4,7 @@ import { UniswapXOrderEntity } from '../entities'
 import { NoHandlerConfiguredError } from '../errors/NoHandlerConfiguredError'
 import { GetOrdersQueryParams } from '../handlers/get-orders/schema'
 import { GetDutchV2OrderResponse } from '../handlers/get-orders/schema/GetDutchV2OrderResponse'
+import { GetDutchV3OrderResponse } from '../handlers/get-orders/schema/GetDutchV3OrderResponse'
 import { GetOrdersResponse } from '../handlers/get-orders/schema/GetOrdersResponse'
 import { GetOrderTypeQueryParamEnum } from '../handlers/get-orders/schema/GetOrderTypeQueryParamEnum'
 import { GetPriorityOrderResponse } from '../handlers/get-orders/schema/GetPriorityOrderResponse'
@@ -13,7 +14,6 @@ import { RelayOrder } from '../models/RelayOrder'
 import { UniswapXOrder } from '../models/UniswapXOrder'
 import { RelayOrderService } from './RelayOrderService'
 import { UniswapXOrderService } from './UniswapXOrderService'
-import { GetDutchV3OrderResponse } from '../handlers/get-orders/schema/GetDutchV3OrderResponse'
 
 export class OrderDispatcher {
   constructor(
@@ -24,8 +24,10 @@ export class OrderDispatcher {
 
   createOrder(order: Order): Promise<string> {
     if (this.isUniswapXOrder(order)) {
+      this.logger.info('PostOrderHandler:: creating uniswapx order')
       return this.uniswapXService.createOrder(order)
     } else if (this.isRelayOrder(order)) {
+      this.logger.info('PostOrderHandler:: creating relay order')
       return this.relayOrderService.createOrder(order)
     }
 
@@ -43,10 +45,12 @@ export class OrderDispatcher {
       >
     | GetOrdersResponse<GetRelayOrderResponse>
   > {
+    this.logger.info('GetOrderHandler:: creating uniswapx order')
     switch (orderType) {
       case GetOrderTypeQueryParamEnum.Dutch_V1_V2:
         return await this.uniswapXService.getDutchV2AndDutchOrders(limit, params, cursor)
       case GetOrderTypeQueryParamEnum.Relay:
+        this.logger.info('GetOrderHandler:: relay order type')
         return await this.relayOrderService.getOrders(limit, params, cursor)
       case GetOrderTypeQueryParamEnum.Dutch_V2:
         return await this.uniswapXService.getDutchV2Orders(limit, params, cursor)
@@ -57,6 +61,7 @@ export class OrderDispatcher {
       case GetOrderTypeQueryParamEnum.Priority:
         return await this.uniswapXService.getPriorityOrders(limit, params, cursor)
       case GetOrderTypeQueryParamEnum.Limit:
+        this.logger.info('GetOrderHandler:: limit order type')
         return await this.uniswapXService.getLimitOrders(limit, params, cursor)
       default:
         throw new Error('OrderDispatcher Not Implemented')

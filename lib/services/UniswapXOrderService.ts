@@ -7,12 +7,9 @@ import {
   CosignedV3DutchOrder,
   DutchOrder,
   OrderType,
-  OrderValidation,
   OrderValidator as OnChainOrderValidator,
 } from '@uniswap/uniswapx-sdk'
-import { ethers } from 'ethers'
 import { ORDER_STATUS, UniswapXOrderEntity } from '../entities'
-import { InvalidTokenInAddress } from '../errors/InvalidTokenInAddress'
 import { OrderValidationFailedError } from '../errors/OrderValidationFailedError'
 import { TooManyOpenOrdersError } from '../errors/TooManyOpenOrdersError'
 import { GetOrdersQueryParams } from '../handlers/get-orders/schema'
@@ -30,10 +27,10 @@ import { LimitOrder } from '../models/LimitOrder'
 import { PriorityOrder } from '../models/PriorityOrder'
 import { checkDefined } from '../preconditions/preconditions'
 import { BaseOrdersRepository } from '../repositories/base'
+import { QuoteMetadata, QuoteMetadataRepository } from '../repositories/quote-metadata-repository'
 import { OffChainUniswapXOrderValidator } from '../util/OffChainUniswapXOrderValidator'
 import { DUTCH_LIMIT, formatOrderEntity } from '../util/order'
 import { AnalyticsServiceInterface } from './analytics-service'
-import { QuoteMetadata, QuoteMetadataRepository } from '../repositories/quote-metadata-repository'
 const MAX_QUERY_RETRY = 10
 
 export class UniswapXOrderService {
@@ -52,15 +49,18 @@ export class UniswapXOrderService {
   async createOrder(order: DutchV1Order | LimitOrder | DutchV2Order | PriorityOrder | DutchV3Order): Promise<string> {
     let orderEntity
     if (order instanceof DutchV1Order || order instanceof LimitOrder) {
+      this.logger.info('PostOrderHandler::UniswapXOrder::validating uniswapx order - in limit order')
       await this.validateOrder(order.inner, order.signature, order.chainId)
       orderEntity = formatOrderEntity(order.inner, order.signature, OrderType.Dutch, ORDER_STATUS.OPEN, order.quoteId)
     } else if (order instanceof DutchV2Order || order instanceof DutchV3Order) {
+      this.logger.info('PostOrderHandler::UniswapXOrder::validating uniswapx order - in dutch order')
       const [quoteMetadata] = await Promise.all([
         order.quoteId ? this.fetchQuoteMetadata(order.quoteId) : undefined,
-        this.validateOrder(order.inner, order.signature, order.chainId)
+        this.validateOrder(order.inner, order.signature, order.chainId),
       ])
       orderEntity = order.toEntity(ORDER_STATUS.OPEN, quoteMetadata)
     } else if (order instanceof PriorityOrder) {
+      this.logger.info('PostOrderHandler::UniswapXOrder::validating uniswapx order - in priority order')
       // following https://github.com/Uniswap/uniswapx-parameterization-api/pull/358
       // recreate KmsSigner every request
       const kmsKeyId = checkDefined(process.env.KMS_KEY_ID, 'KMS_KEY_ID is not defined')
@@ -75,27 +75,32 @@ export class UniswapXOrderService {
       this.logger.info('cosigned priority order', { order: cosignedOrder })
       const [quoteMetadata] = await Promise.all([
         order.quoteId ? this.fetchQuoteMetadata(order.quoteId) : undefined,
-        this.validateOrder(cosignedOrder.inner, cosignedOrder.signature, cosignedOrder.chainId)
+        this.validateOrder(cosignedOrder.inner, cosignedOrder.signature, cosignedOrder.chainId),
       ])
       orderEntity = cosignedOrder.toEntity(ORDER_STATUS.OPEN, quoteMetadata)
     } else {
+      this.logger.info('PostOrderHandler::UniswapXOrder::validating uniswapx order - unsupported order type')
       throw new Error('unsupported OrderType')
     }
 
     const canPlaceNewOrder = await this.userCanPlaceNewOrder(orderEntity.offerer)
     if (!canPlaceNewOrder) {
+      this.logger.info('PostOrderHandler::UniswapXOrder::too many open orders')
       throw new TooManyOpenOrdersError()
     }
 
     await this.persistOrder(orderEntity)
+    this.logger.info('PostOrderHandler::UniswapXOrder::persisted open order')
 
     const realOrderType = order.orderType
+    this.logger.info('PostOrderHandler::UniswapXOrder::real order type: ', realOrderType)
     await this.logOrderCreatedEvent(orderEntity, realOrderType)
 
     // TODO: cleanup with generic order model
     const quoteId = 'quoteId' in order ? order.quoteId : undefined
+    this.logger.info('PostOrderHandler::UniswapXOrder::starting order tracking')
     await this.startOrderTracker(orderEntity.orderHash, order.chainId, quoteId, realOrderType)
-
+    this.logger.info('returning order hash')
     return orderEntity.orderHash
   }
 
@@ -106,23 +111,34 @@ export class UniswapXOrderService {
   ): Promise<void> {
     const offChainValidationResult = this.orderValidator.validate(order)
     if (!offChainValidationResult.valid) {
+      this.logger.info('PostOrderHandler::UniswapXOrder::validation failed on order')
       throw new OrderValidationFailedError(offChainValidationResult.errorString)
     }
 
     const onChainValidator = this.onChainValidatorMap.get(chainId)
-    const onChainValidationResult = await onChainValidator.validate({ order: order, signature: signature })
+    this.logger.info('PostOrderHandler::UniswapXOrder::validating onchain')
+    this.logger.info('the on chain validator:', { onChainValidator })
+
+    this.logger.info('the order:', { order })
+    this.logger.info('the signarure', { signature })
+    // TODO temp to get it to revert at contract stage, uncomment this stuff
+    // const onChainValidationResult = await onChainValidator.validate({ order: order, signature: signature })
+
+    // this.logger.info('got the onchain validation result', { onChainValidationResult })
 
     // Still considered valid
-    if (order instanceof CosignedPriorityOrder && onChainValidationResult == OrderValidation.OrderNotFillableYet) return
+    // if (order instanceof CosignedPriorityOrder && onChainValidationResult == OrderValidation.OrderNotFillableYet) return
 
-    if (onChainValidationResult !== OrderValidation.OK) {
-      const failureReason = OrderValidation[onChainValidationResult]
-      throw new OrderValidationFailedError(`Onchain validation failed: ${failureReason}`)
-    }
+    // if (onChainValidationResult !== OrderValidation.OK) {
+    //   const failureReason = OrderValidation[onChainValidationResult]
+    //   throw new OrderValidationFailedError(`Onchain validation failed: ${failureReason}`)
+    // }
 
-    if (order.info.input.token === ethers.constants.AddressZero) {
-      throw new InvalidTokenInAddress()
-    }
+    // this.logger.info('PostOrderHandler::UniswapXOrder::validated')
+
+    // if (order.info.input.token === ethers.constants.AddressZero) {
+    //   throw new InvalidTokenInAddress()
+    // }
   }
 
   private async userCanPlaceNewOrder(offerer: string): Promise<boolean> {
@@ -334,8 +350,10 @@ export class UniswapXOrderService {
     params: GetOrdersQueryParams,
     cursor: string | undefined
   ): Promise<GetOrdersResponse<UniswapXOrderEntity>> {
+    this.logger.info('GetOrderHandler:: model interaction')
     // TODO: DAT-313: Fix order type for Limit Orders
     const queryResults = await this.limitRepository.getOrdersFilteredByType(limit, params, [OrderType.Dutch], cursor)
+    this.logger.info('GetOrderHandler:: model interaction result sourced', { queryResults })
     return queryResults
   }
 

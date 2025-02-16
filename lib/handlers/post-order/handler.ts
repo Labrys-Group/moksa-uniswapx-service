@@ -62,6 +62,7 @@ export class PostOrderHandler extends APIGLambdaHandler<
     }
 
     try {
+      log.info('PostOrderHandler:: entering create order function')
       const orderHash = await this.orderDispatcher.createOrder(order)
       return {
         statusCode: HttpStatusCode.Created,

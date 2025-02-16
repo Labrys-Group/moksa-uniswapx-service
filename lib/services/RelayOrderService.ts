@@ -52,12 +52,14 @@ export class RelayOrderService {
   }
 
   async createOrder(order: RelayOrder): Promise<string> {
+    this.logger.info('PostOrderHandler:: in relay order creator')
     await this.validateOrder(order, order.signature, order.chainId)
 
     const orderEntity = order.toEntity(ORDER_STATUS.OPEN)
 
     const canPlaceNewOrder = await this.userCanPlaceNewOrder(orderEntity.offerer)
     if (!canPlaceNewOrder) {
+      this.logger.info('PostOrderHandler:: too many open orders')
       throw new TooManyOpenOrdersError()
     }
 
@@ -122,6 +124,7 @@ export class RelayOrderService {
     quoteId: string | undefined,
     orderType: OrderType
   ) {
+    this.logger.info('PostOrderHandler:: started tracker')
     const stateMachineArn = checkDefined(
       process.env[`STATE_MACHINE_ARN_${chainId}`],
       `STATE_MACHINE_ARN_${chainId} not found`
